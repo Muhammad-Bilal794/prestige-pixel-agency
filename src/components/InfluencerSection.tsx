@@ -56,9 +56,9 @@ const InfluencerSection = () => {
                     <DollarSign size={14} /> {c.price}
                   </div>
                 </div>
-                <button className="w-full gradient-bg text-accent-foreground py-2.5 rounded-lg text-xs font-bold hover:opacity-90 transition-opacity">
+                <Link to="/hire" className="block w-full gradient-bg text-accent-foreground py-2.5 rounded-lg text-xs font-bold hover:opacity-90 transition-opacity text-center">
                   Hire Now
-                </button>
+                </Link>
               </div>
             </motion.div>
           ))}
