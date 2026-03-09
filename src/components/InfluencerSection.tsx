@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Users, DollarSign } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const creators = [
   { name: "Alex Rivera", category: "Tech Reviewer", followers: "2.4M", price: "$1,500", color: "from-blue-500 to-cyan-400" },
