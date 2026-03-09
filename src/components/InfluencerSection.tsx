@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Users, DollarSign } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const creators = [
   { name: "Alex Rivera", category: "Tech Reviewer", followers: "2.4M", price: "$1,500", color: "from-blue-500 to-cyan-400" },
@@ -55,9 +56,9 @@ const InfluencerSection = () => {
                     <DollarSign size={14} /> {c.price}
                   </div>
                 </div>
-                <button className="w-full gradient-bg text-accent-foreground py-2.5 rounded-lg text-xs font-bold hover:opacity-90 transition-opacity">
+                <Link to="/hire" className="block w-full gradient-bg text-accent-foreground py-2.5 rounded-lg text-xs font-bold hover:opacity-90 transition-opacity text-center">
                   Hire Now
-                </button>
+                </Link>
               </div>
             </motion.div>
           ))}
