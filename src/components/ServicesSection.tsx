@@ -29,24 +29,25 @@ const ServicesSection = () => {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((s, i) => (
-            <motion.div
-              key={s.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-              className="group relative bg-card border border-border rounded-2xl p-8 hover-lift cursor-pointer"
-            >
-              <div className="w-12 h-12 rounded-xl gradient-bg-subtle flex items-center justify-center mb-5 group-hover:gradient-bg transition-all duration-300">
-                <s.icon size={22} className="text-accent-blue group-hover:text-accent-foreground transition-colors" />
-              </div>
-              <h3 className="font-heading text-lg font-bold text-foreground mb-2">{s.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-4">{s.desc}</p>
-              <ArrowUpRight
-                size={18}
-                className="text-muted-foreground group-hover:text-accent transition-colors duration-300"
-              />
-            </motion.div>
+            <Link key={s.title} to={`/services/${s.slug}`}>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="group relative bg-card border border-border rounded-2xl p-8 hover-lift cursor-pointer h-full"
+              >
+                <div className="w-12 h-12 rounded-xl gradient-bg-subtle flex items-center justify-center mb-5 group-hover:gradient-bg transition-all duration-300">
+                  <s.icon size={22} className="text-accent-blue group-hover:text-accent-foreground transition-colors" />
+                </div>
+                <h3 className="font-heading text-lg font-bold text-foreground mb-2">{s.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">{s.desc}</p>
+                <ArrowUpRight
+                  size={18}
+                  className="text-muted-foreground group-hover:text-accent transition-colors duration-300"
+                />
+              </motion.div>
+            </Link>
           ))}
         </div>
       </div>
