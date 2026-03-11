@@ -1,13 +1,14 @@
 import { motion } from "framer-motion";
 import { Palette, BarChart3, Search, Share2, PenTool, Megaphone, ArrowUpRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const services = [
-  { icon: Palette, title: "Web Design", desc: "Stunning, conversion-optimized websites that captivate your audience and drive results." },
-  { icon: BarChart3, title: "Digital Marketing", desc: "Full-funnel strategies that generate qualified leads and maximize your ROI." },
-  { icon: Search, title: "SEO Optimization", desc: "Dominate search rankings with data-driven SEO strategies and technical excellence." },
-  { icon: Share2, title: "Social Media Marketing", desc: "Build engaged communities and amplify your brand across every platform." },
-  { icon: PenTool, title: "Branding & Graphic Design", desc: "Distinctive brand identities that tell your story and stand out from the competition." },
-  { icon: Megaphone, title: "Paid Advertising", desc: "High-performance PPC campaigns across Google, Meta, and emerging channels." },
+  { icon: Palette, title: "Web Design", slug: "web-design", desc: "Stunning, conversion-optimized websites that captivate your audience and drive results." },
+  { icon: BarChart3, title: "Digital Marketing", slug: "digital-marketing", desc: "Full-funnel strategies that generate qualified leads and maximize your ROI." },
+  { icon: Search, title: "SEO Optimization", slug: "seo-optimization", desc: "Dominate search rankings with data-driven SEO strategies and technical excellence." },
+  { icon: Share2, title: "Social Media Marketing", slug: "social-media-marketing", desc: "Build engaged communities and amplify your brand across every platform." },
+  { icon: PenTool, title: "Branding & Graphic Design", slug: "branding-graphic-design", desc: "Distinctive brand identities that tell your story and stand out from the competition." },
+  { icon: Megaphone, title: "Paid Advertising", slug: "paid-advertising", desc: "High-performance PPC campaigns across Google, Meta, and emerging channels." },
 ];
 
 const ServicesSection = () => {
