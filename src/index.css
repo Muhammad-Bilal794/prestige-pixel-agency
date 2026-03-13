@@ -151,6 +151,10 @@
   .glow {
     box-shadow: 0 0 40px hsl(var(--accent-purple) / 0.3), 0 0 80px hsl(var(--accent-blue) / 0.1);
   }
+
+  .input-admin {
+    @apply w-full h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring;
+  }
 }
 
 @keyframes gradient-shift {
