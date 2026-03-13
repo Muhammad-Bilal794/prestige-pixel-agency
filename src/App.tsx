@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import HireNow from "./pages/HireNow";
 import ServiceDetail from "./pages/ServiceDetail";
 import NotFound from "./pages/NotFound";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
