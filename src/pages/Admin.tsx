@@ -8,6 +8,11 @@ import {
 import { adminAuth, servicesStore, creatorsStore, projectsStore } from "@/lib/adminStore";
 import type { AdminService, AdminCreator, AdminProject } from "@/lib/adminStore";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import ImageUpload from "@/components/ImageUpload";
 
 type Tab = "services" | "creators" | "projects";
 
@@ -49,12 +54,10 @@ const Admin = () => {
   const { toast } = useToast();
   const [tab, setTab] = useState<Tab>("services");
 
-  // Data states
   const [services, setServices] = useState<AdminService[]>([]);
   const [creators, setCreators] = useState<AdminCreator[]>([]);
   const [projects, setProjects] = useState<AdminProject[]>([]);
 
-  // Form states
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [showCreatorForm, setShowCreatorForm] = useState(false);
   const [showProjectForm, setShowProjectForm] = useState(false);
@@ -65,6 +68,11 @@ const Admin = () => {
   const [serviceForm, setServiceForm] = useState<Omit<AdminService, "id">>(emptyService);
   const [creatorForm, setCreatorForm] = useState<Omit<AdminCreator, "id">>(emptyCreator);
   const [projectForm, setProjectForm] = useState<Omit<AdminProject, "id">>(emptyProject);
+
+  // Delete confirmation state
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; type: string; id: string; name: string }>({
+    open: false, type: "", id: "", name: "",
+  });
 
   useEffect(() => {
     if (!adminAuth.isLoggedIn()) { navigate("/admin-login"); return; }
@@ -80,6 +88,19 @@ const Admin = () => {
   const handleLogout = () => {
     adminAuth.logout();
     navigate("/admin-login");
+  };
+
+  const confirmDelete = () => {
+    const { type, id } = deleteDialog;
+    if (type === "service") { servicesStore.remove(id); toast({ title: "Service deleted" }); }
+    else if (type === "creator") { creatorsStore.remove(id); toast({ title: "Creator deleted" }); }
+    else if (type === "project") { projectsStore.remove(id); toast({ title: "Project deleted" }); }
+    setDeleteDialog({ open: false, type: "", id: "", name: "" });
+    refreshData();
+  };
+
+  const openDeleteDialog = (type: string, id: string, name: string) => {
+    setDeleteDialog({ open: true, type, id, name });
   };
 
   // ─── Service CRUD ───
@@ -107,12 +128,6 @@ const Admin = () => {
     setShowServiceForm(true);
   };
 
-  const deleteService = (id: string) => {
-    servicesStore.remove(id);
-    toast({ title: "Service deleted" });
-    refreshData();
-  };
-
   // ─── Creator CRUD ───
   const saveCreator = () => {
     if (!creatorForm.name) {
@@ -136,12 +151,6 @@ const Admin = () => {
     setCreatorForm({ ...c });
     setEditingCreatorId(c.id);
     setShowCreatorForm(true);
-  };
-
-  const deleteCreator = (id: string) => {
-    creatorsStore.remove(id);
-    toast({ title: "Creator deleted" });
-    refreshData();
   };
 
   // ─── Project CRUD ───
@@ -169,12 +178,6 @@ const Admin = () => {
     setShowProjectForm(true);
   };
 
-  const deleteProject = (id: string) => {
-    projectsStore.remove(id);
-    toast({ title: "Project deleted" });
-    refreshData();
-  };
-
   const tabs: { key: Tab; label: string; icon: React.ElementType; count: number }[] = [
     { key: "services", label: "Services", icon: Briefcase, count: services.length },
     { key: "creators", label: "Creators", icon: Users, count: creators.length },
@@ -183,14 +186,30 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>"{deleteDialog.name}"</strong>. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <h1 className="font-heading text-xl font-extrabold gradient-text">Admin Panel</h1>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
+          <button onClick={handleLogout}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <LogOut size={16} /> Logout
           </button>
         </div>
@@ -200,19 +219,14 @@ const Admin = () => {
         {/* Tabs */}
         <div className="flex gap-2 mb-8">
           {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+            <button key={t.key} onClick={() => setTab(t.key)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                 tab === t.key
                   ? "gradient-bg text-accent-foreground shadow-lg"
                   : "bg-card border border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <t.icon size={16} /> {t.label}
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                tab === t.key ? "bg-accent-foreground/20" : "bg-secondary"
               }`}>
+              <t.icon size={16} /> {t.label}
+              <span className={`text-xs px-2 py-0.5 rounded-full ${tab === t.key ? "bg-accent-foreground/20" : "bg-secondary"}`}>
                 {t.count}
               </span>
             </button>
@@ -226,13 +240,11 @@ const Admin = () => {
               <h2 className="font-heading text-lg font-bold text-foreground">Manage Services</h2>
               <button
                 onClick={() => { setServiceForm(emptyService); setEditingServiceId(null); setShowServiceForm(true); }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg gradient-bg text-accent-foreground text-sm font-bold hover:opacity-90 transition-opacity"
-              >
+                className="flex items-center gap-2 px-4 py-2 rounded-lg gradient-bg text-accent-foreground text-sm font-bold hover:opacity-90 transition-opacity">
                 <Plus size={16} /> Add Service
               </button>
             </div>
 
-            {/* Service list */}
             <div className="space-y-3">
               {services.length === 0 && (
                 <p className="text-center text-muted-foreground py-12">No services added yet. Click "Add Service" to get started.</p>
@@ -252,7 +264,7 @@ const Admin = () => {
                     <button onClick={() => editService(s)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
                       <Edit2 size={16} />
                     </button>
-                    <button onClick={() => deleteService(s.id)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                    <button onClick={() => openDeleteDialog("service", s.id, s.title)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -260,7 +272,6 @@ const Admin = () => {
               ))}
             </div>
 
-            {/* Service Form Modal */}
             <AnimatePresence>
               {showServiceForm && (
                 <FormModal title={editingServiceId ? "Edit Service" : "Add Service"} onClose={() => { setShowServiceForm(false); setEditingServiceId(null); }}>
@@ -272,12 +283,9 @@ const Admin = () => {
                     <InputField label="Short Description" value={serviceForm.desc} onChange={(v) => setServiceForm({ ...serviceForm, desc: v })} />
                     <InputField label="Tagline" value={serviceForm.tagline} onChange={(v) => setServiceForm({ ...serviceForm, tagline: v })} />
                     <TextareaField label="Full Description" value={serviceForm.description} onChange={(v) => setServiceForm({ ...serviceForm, description: v })} />
-                    <InputField label="Hero Image URL" value={serviceForm.heroImage} onChange={(v) => setServiceForm({ ...serviceForm, heroImage: v })} placeholder="https://..." />
+                    <ImageUpload label="Hero Image" value={serviceForm.heroImage} onChange={(v) => setServiceForm({ ...serviceForm, heroImage: v })} />
 
-                    {/* Features */}
-                    <ArraySection
-                      label="Features"
-                      items={serviceForm.features}
+                    <ArraySection label="Features" items={serviceForm.features}
                       renderItem={(item, i) => (
                         <div className="grid grid-cols-2 gap-2">
                           <input className="input-admin" placeholder="Feature title" value={item.title} onChange={(e) => {
@@ -292,10 +300,7 @@ const Admin = () => {
                       onRemove={(i) => setServiceForm({ ...serviceForm, features: serviceForm.features.filter((_, idx) => idx !== i) })}
                     />
 
-                    {/* Process Steps */}
-                    <ArraySection
-                      label="Process Steps"
-                      items={serviceForm.process}
+                    <ArraySection label="Process Steps" items={serviceForm.process}
                       renderItem={(item, i) => (
                         <div className="grid grid-cols-2 gap-2">
                           <input className="input-admin" placeholder="Step name" value={item.step} onChange={(e) => {
@@ -310,10 +315,7 @@ const Admin = () => {
                       onRemove={(i) => setServiceForm({ ...serviceForm, process: serviceForm.process.filter((_, idx) => idx !== i) })}
                     />
 
-                    {/* Stats */}
-                    <ArraySection
-                      label="Stats"
-                      items={serviceForm.stats}
+                    <ArraySection label="Stats" items={serviceForm.stats}
                       renderItem={(item, i) => (
                         <div className="grid grid-cols-2 gap-2">
                           <input className="input-admin" placeholder="Value (e.g. 200+)" value={item.value} onChange={(e) => {
@@ -328,7 +330,6 @@ const Admin = () => {
                       onRemove={(i) => setServiceForm({ ...serviceForm, stats: serviceForm.stats.filter((_, idx) => idx !== i) })}
                     />
 
-                    {/* Testimonial */}
                     <div className="space-y-2">
                       <p className="text-sm font-semibold text-foreground">Testimonial</p>
                       <TextareaField label="Quote" value={serviceForm.testimonial.quote} onChange={(v) => setServiceForm({ ...serviceForm, testimonial: { ...serviceForm.testimonial, quote: v } })} />
@@ -338,10 +339,7 @@ const Admin = () => {
                       </div>
                     </div>
 
-                    {/* FAQs */}
-                    <ArraySection
-                      label="FAQs"
-                      items={serviceForm.faqs}
+                    <ArraySection label="FAQs" items={serviceForm.faqs}
                       renderItem={(item, i) => (
                         <div className="space-y-2">
                           <input className="input-admin" placeholder="Question" value={item.q} onChange={(e) => {
@@ -373,8 +371,7 @@ const Admin = () => {
               <h2 className="font-heading text-lg font-bold text-foreground">Manage Creators</h2>
               <button
                 onClick={() => { setCreatorForm(emptyCreator); setEditingCreatorId(null); setShowCreatorForm(true); }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg gradient-bg text-accent-foreground text-sm font-bold hover:opacity-90 transition-opacity"
-              >
+                className="flex items-center gap-2 px-4 py-2 rounded-lg gradient-bg text-accent-foreground text-sm font-bold hover:opacity-90 transition-opacity">
                 <Plus size={16} /> Add Creator
               </button>
             </div>
@@ -399,7 +396,7 @@ const Admin = () => {
                     <p className="text-xs text-muted-foreground">{c.category} · {c.followers} followers · {c.price}</p>
                     <div className="flex gap-2 mt-3">
                       <button onClick={() => editCreator(c)} className="flex-1 text-xs py-2 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 font-medium transition-colors">Edit</button>
-                      <button onClick={() => deleteCreator(c.id)} className="text-xs py-2 px-3 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                      <button onClick={() => openDeleteDialog("creator", c.id, c.name)} className="text-xs py-2 px-3 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -418,18 +415,15 @@ const Admin = () => {
                       <InputField label="Followers" value={creatorForm.followers} onChange={(v) => setCreatorForm({ ...creatorForm, followers: v })} placeholder="e.g. 2.4M" />
                       <InputField label="Price" value={creatorForm.price} onChange={(v) => setCreatorForm({ ...creatorForm, price: v })} placeholder="e.g. $1,500" />
                     </div>
-                    <InputField label="Profile Image URL" value={creatorForm.image} onChange={(v) => setCreatorForm({ ...creatorForm, image: v })} placeholder="https://..." />
+                    <ImageUpload label="Profile Image" value={creatorForm.image} onChange={(v) => setCreatorForm({ ...creatorForm, image: v })} />
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1.5">Gradient Color</label>
                       <div className="grid grid-cols-3 gap-2">
                         {colorOptions.map((opt) => (
-                          <button
-                            key={opt.value}
-                            onClick={() => setCreatorForm({ ...creatorForm, color: opt.value })}
+                          <button key={opt.value} onClick={() => setCreatorForm({ ...creatorForm, color: opt.value })}
                             className={`h-10 rounded-lg bg-gradient-to-br ${opt.value} text-xs font-medium text-accent-foreground flex items-center justify-center transition-all ${
                               creatorForm.color === opt.value ? "ring-2 ring-ring ring-offset-2 ring-offset-background" : ""
-                            }`}
-                          >
+                            }`}>
                             {opt.label}
                           </button>
                         ))}
@@ -452,8 +446,7 @@ const Admin = () => {
               <h2 className="font-heading text-lg font-bold text-foreground">Manage Projects</h2>
               <button
                 onClick={() => { setProjectForm(emptyProject); setEditingProjectId(null); setShowProjectForm(true); }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg gradient-bg text-accent-foreground text-sm font-bold hover:opacity-90 transition-opacity"
-              >
+                className="flex items-center gap-2 px-4 py-2 rounded-lg gradient-bg text-accent-foreground text-sm font-bold hover:opacity-90 transition-opacity">
                 <Plus size={16} /> Add Project
               </button>
             </div>
@@ -477,7 +470,7 @@ const Admin = () => {
                     <button onClick={() => editProject(p)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
                       <Edit2 size={16} />
                     </button>
-                    <button onClick={() => deleteProject(p.id)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                    <button onClick={() => openDeleteDialog("project", p.id, p.title)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -493,11 +486,7 @@ const Admin = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-1.5">Category</label>
-                        <select
-                          value={projectForm.cat}
-                          onChange={(e) => setProjectForm({ ...projectForm, cat: e.target.value })}
-                          className="input-admin"
-                        >
+                        <select value={projectForm.cat} onChange={(e) => setProjectForm({ ...projectForm, cat: e.target.value })} className="input-admin">
                           <option value="">Select category</option>
                           {categoryOptions.map((c) => <option key={c} value={c}>{c}</option>)}
                         </select>
@@ -505,7 +494,7 @@ const Admin = () => {
                       <InputField label="Year" value={projectForm.year} onChange={(v) => setProjectForm({ ...projectForm, year: v })} placeholder="2024" />
                     </div>
                     <InputField label="Short Description" value={projectForm.desc} onChange={(v) => setProjectForm({ ...projectForm, desc: v })} />
-                    <InputField label="Image URL" value={projectForm.img} onChange={(v) => setProjectForm({ ...projectForm, img: v })} placeholder="https://..." />
+                    <ImageUpload label="Project Image" value={projectForm.img} onChange={(v) => setProjectForm({ ...projectForm, img: v })} />
                     <div className="grid grid-cols-2 gap-4">
                       <InputField label="Client Name" value={projectForm.client} onChange={(v) => setProjectForm({ ...projectForm, client: v })} />
                       <InputField label="Duration" value={projectForm.duration} onChange={(v) => setProjectForm({ ...projectForm, duration: v })} placeholder="e.g. 12 Weeks" />
@@ -513,10 +502,7 @@ const Admin = () => {
                     <TextareaField label="Challenge" value={projectForm.challenge} onChange={(v) => setProjectForm({ ...projectForm, challenge: v })} />
                     <TextareaField label="Solution" value={projectForm.solution} onChange={(v) => setProjectForm({ ...projectForm, solution: v })} />
 
-                    {/* Results */}
-                    <ArraySection
-                      label="Results"
-                      items={projectForm.results}
+                    <ArraySection label="Results" items={projectForm.results}
                       renderItem={(item, i) => (
                         <div className="grid grid-cols-2 gap-2">
                           <input className="input-admin" placeholder="Label (e.g. Conversion Rate)" value={item.label} onChange={(e) => {
@@ -531,10 +517,7 @@ const Admin = () => {
                       onRemove={(i) => setProjectForm({ ...projectForm, results: projectForm.results.filter((_, idx) => idx !== i) })}
                     />
 
-                    {/* Deliverables */}
-                    <ArraySection
-                      label="Deliverables"
-                      items={projectForm.deliverables}
+                    <ArraySection label="Deliverables" items={projectForm.deliverables}
                       renderItem={(item, i) => (
                         <input className="input-admin" placeholder="Deliverable name" value={item} onChange={(e) => {
                           const d = [...projectForm.deliverables]; d[i] = e.target.value; setProjectForm({ ...projectForm, deliverables: d });
@@ -544,7 +527,6 @@ const Admin = () => {
                       onRemove={(i) => setProjectForm({ ...projectForm, deliverables: projectForm.deliverables.filter((_, idx) => idx !== i) })}
                     />
 
-                    {/* Testimonial */}
                     <div className="space-y-2">
                       <p className="text-sm font-semibold text-foreground">Testimonial</p>
                       <TextareaField label="Quote" value={projectForm.testimonial.text} onChange={(v) => setProjectForm({ ...projectForm, testimonial: { ...projectForm.testimonial, text: v } })} />
