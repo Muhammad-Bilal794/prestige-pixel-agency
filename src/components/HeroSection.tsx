@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Play } from "lucide-react";
 import heroDashboard from "@/assets/hero-dashboard.png";
+import ProposalDialog from "./ProposalDialog";
 
 const HeroSection = () => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
       {/* Background elements */}
@@ -39,13 +43,13 @@ const HeroSection = () => {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <a
-                href="#contact"
+              <button
+                onClick={() => setDialogOpen(true)}
                 className="gradient-bg text-accent-foreground px-8 py-4 rounded-xl text-sm font-bold hover:opacity-90 transition-all duration-300 hover:shadow-lg hover:shadow-accent-purple/20 flex items-center gap-2"
               >
                 Get Free Proposal
                 <ArrowRight size={16} />
-              </a>
+              </button>
               <a
                 href="#portfolio"
                 className="border border-border text-foreground px-8 py-4 rounded-xl text-sm font-bold hover:bg-secondary transition-all duration-300 flex items-center gap-2"
@@ -87,7 +91,6 @@ const HeroSection = () => {
                 className="relative rounded-2xl shadow-2xl border border-border/50 w-full"
               />
             </div>
-            {/* Floating stat card */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -100,6 +103,8 @@ const HeroSection = () => {
           </motion.div>
         </div>
       </div>
+
+      <ProposalDialog open={dialogOpen} onOpenChange={setDialogOpen} mode="proposal" />
     </section>
   );
 };
